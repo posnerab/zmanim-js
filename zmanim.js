@@ -177,7 +177,7 @@ cron.schedule('0 7 * * *', async () => {
             value3: lastPassed ? -minutesAgo : 'N/A'
         };
 
-        await triggerIFTTT(startupPayload);
+        //await triggerIFTTT(startupPayload);
         writeRecentTime(lastPassed ? lastPassed.label : nextUp.label);
     }
 })();
