@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^1.6.8",
+    "luxon": "^3.4.4",
     "node-cron": "^3.0.3"
   }
 }
