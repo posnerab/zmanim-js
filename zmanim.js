@@ -37,7 +37,7 @@ async function triggerIFTTT(payload) {
 // Function to write the most recent time to a file
 function writeRecentTime(label, time) {
     const recentTime = { label, time: time.toISO() };
-    fs.writeFileSync('recent_time.txt', JSON.stringify(recentTime), 'utf8');
+    fs.writeFileSync('recent_time.json', JSON.stringify(recentTime), 'utf8');
 }
 
 // Function to schedule a cron job to trigger the IFTTT webhook at a specific time
