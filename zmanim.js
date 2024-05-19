@@ -35,8 +35,9 @@ async function triggerIFTTT(payload) {
 }
 
 // Function to write the most recent time to a file
-function writeRecentTime(label) {
-    fs.writeFileSync('recent_time.txt', label, 'utf8');
+function writeRecentTime(label, time) {
+    const recentTime = { label, time: time.toISO() };
+    fs.writeFileSync('recent_time.txt', JSON.stringify(recentTime), 'utf8');
 }
 
 // Function to schedule a cron job to trigger the IFTTT webhook at a specific time
@@ -44,6 +45,13 @@ function scheduleCronTrigger(triggerTime, zmanim, label, offset, timeKey = null)
     const cronTime = triggerTime.toFormat('m H d M *');
     cron.schedule(cronTime, async () => {
         const now = DateTime.now().setZone('America/Chicago');
+        const sunsetTime = DateTime.fromISO(zmanim.times.sunset).setZone('America/Chicago');
+
+        if (isShabbat(now, sunsetTime)) {
+            console.log(`Shabbat mode: Skipping IFTTT trigger for ${label}. Most recent time: ${label}`);
+            return;
+        }
+        
         const zmanTime = DateTime.fromISO(zmanim.times[timeKey]).setZone('America/Chicago');
         const minutesDiff = Math.round(Duration.fromObject({ milliseconds: zmanTime.diff(now).milliseconds }).as('minutes'));
 
@@ -54,29 +62,50 @@ function scheduleCronTrigger(triggerTime, zmanim, label, offset, timeKey = null)
         };
 
         await triggerIFTTT(payload);
-        writeRecentTime(label);
+        writeRecentTime(label, zmanTime);
         console.log(`Cron job executed for ${label} at ${triggerTime.toFormat('h:mm a')}`);
     }, {
         timezone: 'America/Chicago'
     });
-    
+
     const beforeAfter = offset >= 0 ? 'before' : 'after';
     console.log(`Scheduled cron job for ${Math.abs(offset)} minutes ${beforeAfter} ${label}: ${triggerTime.toFormat('h:mm a')}`);
 }
 
+// Simplified Shabbat check function
+function isShabbat(now, sunsetTime) {
+    const day = now.weekday; // 1 = Monday, ..., 7 = Sunday
+    const sunsetFriday = sunsetTime.set({ weekday: 5 }).minus({minutes: 18 });
+    const sunsetSaturday = sunsetTime.set({ weekday: 6 }).plus({ minutes: 72 });
+
+    if (now >= sunsetFriday && now <= sunsetSaturday) {
+        console.log(`Current time ${now.toFormat('f')} is within Shabbat period from ${sunsetFriday.toFormat('f')} to ${sunsetSaturday.toFormat('f')}.`);
+        return true;
+    } else {
+        console.log(`Current time ${now.toFormat('f')} is outside Shabbat period from ${sunsetFriday.toFormat('f')} to ${sunsetSaturday.toFormat('f')}.`);
+        return false;
+    }
+}
+
 // Define the offset times in minutes
 const offsets = {
+    chatzotNight: 30,
+    misheyakir: 30,
+    dawn: 30,
     sunrise: 30,
     sofZmanShma: 30,
     sofZmanTfilla: 30,
+    chatzot: 30,
     minchaGedola: 30,
     minchaKetana: 30,
-    sunset: 30,
+    plagHaMincha: 30,
+    sunset: 60,
+    beinHaShmashos: 30,
     tzeit85deg: 30
 };
 
 // List of relevant zmanim keys
-const relevantZmanimKeys = ['sunrise', 'sofZmanShma', 'sofZmanTfilla', 'minchaGedola', 'minchaKetana', 'sunset', 'tzeit85deg'];
+const relevantZmanimKeys = ['chatzotNight', 'misheyakir', 'dawn', 'sunrise', 'sofZmanShma', 'sofZmanTfilla', 'chatzot', 'minchaGedola', 'minchaKetana', 'plagHaMincha', 'sunset', 'beinHaShmashos', 'tzeit85deg'];
 
 // Function to find the next upcoming time
 function getNextUpTime(times) {
@@ -116,12 +145,18 @@ async function scheduleTriggers() {
 
         // Schedule triggers based on offset times
         const triggerTimes = [
-            { time: times.sunrise, label: 'sunrise', offset: offsets.sunrise },
-            { time: times.sofZmanShma, label: 'sofZmanShma', offset: offsets.sofZmanShma },
-            { time: times.sofZmanTfilla, label: 'sofZmanTfilla', offset: offsets.sofZmanTfilla },
+            { time: times.chatzotNight, label: 'chatzotNight', offset: offsets.chatzotNight, key: 'chatzotNight' },
+            { time: times.misheyakir, label: 'misheyakir', offset: offsets.misheyakir, key: 'misheyakir' },
+            { time: times.dawn, label: 'dawn', offset: offsets.dawn, key: 'dawn' },
+            { time: times.sunrise, label: 'sunrise', offset: offsets.sunrise, key: 'sunrise' },
+            { time: times.sofZmanShma, label: 'sofZmanShma', offset: offsets.sofZmanShma, key: 'sofZmanShma' },
+            { time: times.sofZmanTfilla, label: 'sofZmanTfilla', offset: offsets.sofZmanTfilla, key: 'sofZmanTfilla' },
+            { time: times.chatzot, label: 'chatzot', offset: offsets.chatzot, key: 'chatzot' },
             { time: times.minchaGedola, label: 'minchaGedola', offset: offsets.minchaGedola, key: 'minchaGedola' },
             { time: times.minchaKetana, label: 'minchaKetana', offset: offsets.minchaKetana, key: 'minchaKetana' },
+            { time: times.plagHaMincha, label: 'plagHaMincha', offset: offsets.plagHaMincha, key: 'plagHaMincha' },
             { time: times.sunset, label: 'sunset', offset: offsets.sunset, key: 'sunset' },
+            { time: times.beinHaShmashos, label: 'beinHaShmashos', offset: offsets.beinHaShmashos, key: 'beinHaShmashos' },
             { time: times.tzeit85deg, label: 'tzeit85deg', offset: offsets.tzeit85deg, key: 'tzeit85deg' }
         ];
 
@@ -147,7 +182,7 @@ async function scheduleTriggers() {
         };
 
         await triggerIFTTT(startupPayload);
-        writeRecentTime(lastPassed ? lastPassed.label : nextUp.label);
+        writeRecentTime(lastPassed ? lastPassed.label : nextUp.label, lastPassed ? lastPassed.time : nextUp.time);
     }
 }
 
@@ -177,7 +212,12 @@ cron.schedule('0 7 * * *', async () => {
             value3: lastPassed ? -minutesAgo : 'N/A'
         };
 
-        //await triggerIFTTT(startupPayload);
-        writeRecentTime(lastPassed ? lastPassed.label : nextUp.label);
+        const sunsetTime = DateTime.fromISO(zmanim.times.sunset).setZone('America/Chicago');
+        if (!isShabbat(now, sunsetTime)) {
+            await triggerIFTTT(startupPayload);
+        } else {
+            console.log(`Shabbat mode: Skipping IFTTT trigger for startup. Most recent time: ${lastPassed ? lastPassed.label : nextUp.label}`);
+        }
+        writeRecentTime(lastPassed ? lastPassed.label : nextUp.label, lastPassed ? lastPassed.time : nextUp.time);
     }
 })();
