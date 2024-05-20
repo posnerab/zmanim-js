@@ -38,10 +38,11 @@ async function triggerIFTTT(payload) {
 function writeRecentTime(label, time) {
     const recentTime = { label, time: time.toISO() };
     fs.writeFileSync('recent_time.json', JSON.stringify(recentTime), 'utf8');
+    console.log(`Most recent time updated to ${label} at ${time.toFormat('h:mm a')}`);
 }
 
 // Function to schedule a cron job to trigger the IFTTT webhook at a specific time
-function scheduleCronTrigger(triggerTime, zmanim, label, offset, timeKey = null) {
+function scheduleCronTrigger(triggerTime, zmanim, label, offset, isReminder = false) {
     const cronTime = triggerTime.toFormat('m H d M *');
     cron.schedule(cronTime, async () => {
         const now = DateTime.now().setZone('America/Chicago');
@@ -51,31 +52,31 @@ function scheduleCronTrigger(triggerTime, zmanim, label, offset, timeKey = null)
             console.log(`Shabbat mode: Skipping IFTTT trigger for ${label}. Most recent time: ${label}`);
             return;
         }
-        
-        const zmanTime = DateTime.fromISO(zmanim.times[timeKey]).setZone('America/Chicago');
-        const minutesDiff = Math.round(Duration.fromObject({ milliseconds: zmanTime.diff(now).milliseconds }).as('minutes'));
 
-        const payload = {
-            value1: label,
-            value2: zmanTime.toFormat('h:mm a'),
-            value3: Math.abs(offset)
-        };
-
-        await triggerIFTTT(payload);
-        writeRecentTime(label, zmanTime);
-        console.log(`Cron job executed for ${label} at ${triggerTime.toFormat('h:mm a')}`);
+        if (isReminder) {
+            const zmanTime = DateTime.fromISO(zmanim.times[label]).setZone('America/Chicago');
+            const payload = {
+                value1: label,
+                value2: zmanTime.toFormat('h:mm a'),
+                value3: offset
+            };
+            await triggerIFTTT(payload);
+            console.log(`Reminder sent for ${label} at ${triggerTime.toFormat('h:mm a')}`);
+        } else {
+            writeRecentTime(label, triggerTime);
+            console.log(`Cron job executed for ${label} at ${triggerTime.toFormat('h:mm a')}`);
+        }
     }, {
         timezone: 'America/Chicago'
     });
 
-    const beforeAfter = offset >= 0 ? 'before' : 'after';
+    const beforeAfter = isReminder ? 'before' : '';
     console.log(`Scheduled cron job for ${Math.abs(offset)} minutes ${beforeAfter} ${label}: ${triggerTime.toFormat('h:mm a')}`);
 }
 
 // Simplified Shabbat check function
 function isShabbat(now, sunsetTime) {
-    const day = now.weekday; // 1 = Monday, ..., 7 = Sunday
-    const sunsetFriday = sunsetTime.set({ weekday: 5 }).minus({minutes: 18 });
+    const sunsetFriday = sunsetTime.set({ weekday: 5 }).minus({ minutes: 18 });
     const sunsetSaturday = sunsetTime.set({ weekday: 6 }).plus({ minutes: 72 });
 
     if (now >= sunsetFriday && now <= sunsetSaturday) {
@@ -105,7 +106,10 @@ const offsets = {
 };
 
 // List of relevant zmanim keys
-const relevantZmanimKeys = ['chatzotNight', 'misheyakir', 'dawn', 'sunrise', 'sofZmanShma', 'sofZmanTfilla', 'chatzot', 'minchaGedola', 'minchaKetana', 'plagHaMincha', 'sunset', 'beinHaShmashos', 'tzeit85deg'];
+const relevantZmanimKeys = [
+    'chatzotNight', 'misheyakir', 'dawn', 'sunrise', 'sofZmanShma', 'sofZmanTfilla',
+    'chatzot', 'minchaGedola', 'minchaKetana', 'plagHaMincha', 'sunset', 'beinHaShmashos', 'tzeit85deg'
+];
 
 // Function to find the next upcoming time
 function getNextUpTime(times) {
@@ -139,31 +143,30 @@ async function scheduleTriggers() {
         console.log('Successfully fetched Zmanim.');
         const times = zmanim.times;
 
-        // Schedule triggers for 1 hour before sunrise
-        const summaryTime = DateTime.fromISO(times.sunrise).setZone('America/Chicago').minus({ minutes: 60 });
-        scheduleCronTrigger(summaryTime, zmanim, 'sunrise', 60);
-
         // Schedule triggers based on offset times
         const triggerTimes = [
-            { time: times.chatzotNight, label: 'chatzotNight', offset: offsets.chatzotNight, key: 'chatzotNight' },
-            { time: times.misheyakir, label: 'misheyakir', offset: offsets.misheyakir, key: 'misheyakir' },
-            { time: times.dawn, label: 'dawn', offset: offsets.dawn, key: 'dawn' },
-            { time: times.sunrise, label: 'sunrise', offset: offsets.sunrise, key: 'sunrise' },
-            { time: times.sofZmanShma, label: 'sofZmanShma', offset: offsets.sofZmanShma, key: 'sofZmanShma' },
-            { time: times.sofZmanTfilla, label: 'sofZmanTfilla', offset: offsets.sofZmanTfilla, key: 'sofZmanTfilla' },
-            { time: times.chatzot, label: 'chatzot', offset: offsets.chatzot, key: 'chatzot' },
-            { time: times.minchaGedola, label: 'minchaGedola', offset: offsets.minchaGedola, key: 'minchaGedola' },
-            { time: times.minchaKetana, label: 'minchaKetana', offset: offsets.minchaKetana, key: 'minchaKetana' },
-            { time: times.plagHaMincha, label: 'plagHaMincha', offset: offsets.plagHaMincha, key: 'plagHaMincha' },
-            { time: times.sunset, label: 'sunset', offset: offsets.sunset, key: 'sunset' },
-            { time: times.beinHaShmashos, label: 'beinHaShmashos', offset: offsets.beinHaShmashos, key: 'beinHaShmashos' },
-            { time: times.tzeit85deg, label: 'tzeit85deg', offset: offsets.tzeit85deg, key: 'tzeit85deg' }
+            { time: times.chatzotNight, label: 'chatzotNight', offset: offsets.chatzotNight },
+            { time: times.misheyakir, label: 'misheyakir', offset: offsets.misheyakir },
+            { time: times.dawn, label: 'dawn', offset: offsets.dawn },
+            { time: times.sunrise, label: 'sunrise', offset: offsets.sunrise },
+            { time: times.sofZmanShma, label: 'sofZmanShma', offset: offsets.sofZmanShma },
+            { time: times.sofZmanTfilla, label: 'sofZmanTfilla', offset: offsets.sofZmanTfilla },
+            { time: times.chatzot, label: 'chatzot', offset: offsets.chatzot },
+            { time: times.minchaGedola, label: 'minchaGedola', offset: offsets.minchaGedola },
+            { time: times.minchaKetana, label: 'minchaKetana', offset: offsets.minchaKetana },
+            { time: times.plagHaMincha, label: 'plagHaMincha', offset: offsets.plagHaMincha },
+            { time: times.sunset, label: 'sunset', offset: offsets.sunset },
+            { time: times.beinHaShmashos, label: 'beinHaShmashos', offset: offsets.beinHaShmashos },
+            { time: times.tzeit85deg, label: 'tzeit85deg', offset: offsets.tzeit85deg }
         ];
 
-        triggerTimes.forEach(({ time, offset, label, key }) => {
+        triggerTimes.forEach(({ time, offset, label }) => {
             if (time) {
-                const triggerTime = DateTime.fromISO(time).setZone('America/Chicago').minus({ minutes: offset });
-                scheduleCronTrigger(triggerTime, zmanim, label, offset, key);
+                const reminderTime = DateTime.fromISO(time).setZone('America/Chicago').minus({ minutes: offset });
+                scheduleCronTrigger(reminderTime, zmanim, label, offset, true);
+
+                const actualTime = DateTime.fromISO(time).setZone('America/Chicago');
+                scheduleCronTrigger(actualTime, zmanim, label, 0, false);
             } else {
                 console.log(`Invalid time for ${label}`);
             }
@@ -176,9 +179,9 @@ async function scheduleTriggers() {
         const minutesAgo = lastPassed ? Math.round(Duration.fromObject({ milliseconds: now.diff(lastPassed.time).milliseconds }).as('minutes')) : 0;
 
         const startupPayload = {
-            value1: lastPassed ? lastPassed.label : nextUp.label,
-            value2: lastPassed ? lastPassed.time.toFormat('h:mm a') : nextUp.time.toFormat('h:mm a'),
-            value3: lastPassed ? -minutesAgo : 'N/A'
+            value1: nextUp.label,
+            value2: nextUp.time.toFormat('h:mm a'),
+            value3: minutesAgo
         };
 
         await triggerIFTTT(startupPayload);
@@ -186,8 +189,8 @@ async function scheduleTriggers() {
     }
 }
 
-// Schedule the daily task at 2 AM CT (which is 7 AM UTC)
-cron.schedule('0 7 * * *', async () => {
+// Schedule the daily task at 12:01 AM local time
+cron.schedule('1 0 * * *', async () => {
     await scheduleTriggers();
 }, {
     scheduled: true,
@@ -207,9 +210,9 @@ cron.schedule('0 7 * * *', async () => {
         const minutesAgo = lastPassed ? Math.round(Duration.fromObject({ milliseconds: now.diff(lastPassed.time).milliseconds }).as('minutes')) : 0;
 
         const startupPayload = {
-            value1: lastPassed ? lastPassed.label : nextUp.label,
-            value2: lastPassed ? lastPassed.time.toFormat('h:mm a') : nextUp.time.toFormat('h:mm a'),
-            value3: lastPassed ? -minutesAgo : 'N/A'
+            value1: nextUp.label,
+            value2: nextUp.time.toFormat('h:mm a'),
+            value3: minutesAgo
         };
 
         const sunsetTime = DateTime.fromISO(zmanim.times.sunset).setZone('America/Chicago');
