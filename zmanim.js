@@ -102,13 +102,14 @@ const offsets = {
     plagHaMincha: 30,
     sunset: 60,
     beinHaShmashos: 30,
-    tzeit85deg: 30
+    tzeit85deg: 30,
+    tzeit72min: 30
 };
 
 // List of relevant zmanim keys
 const relevantZmanimKeys = [
     'chatzotNight', 'misheyakir', 'dawn', 'sunrise', 'sofZmanShma', 'sofZmanTfilla',
-    'chatzot', 'minchaGedola', 'minchaKetana', 'plagHaMincha', 'sunset', 'beinHaShmashos', 'tzeit85deg'
+    'chatzot', 'minchaGedola', 'minchaKetana', 'plagHaMincha', 'sunset', 'beinHaShmashos', 'tzeit85deg', 'tzeit72min'
 ];
 
 // Function to find the next upcoming time
@@ -157,7 +158,8 @@ async function scheduleTriggers() {
             { time: times.plagHaMincha, label: 'plagHaMincha', offset: offsets.plagHaMincha },
             { time: times.sunset, label: 'sunset', offset: offsets.sunset },
             { time: times.beinHaShmashos, label: 'beinHaShmashos', offset: offsets.beinHaShmashos },
-            { time: times.tzeit85deg, label: 'tzeit85deg', offset: offsets.tzeit85deg }
+            { time: times.tzeit85deg, label: 'tzeit85deg', offset: offsets.tzeit85deg },
+            { time: times.tzeit72min, label: 'tzeit72min', offset: offsets.tzeit72min }
         ];
 
         triggerTimes.forEach(({ time, offset, label }) => {
