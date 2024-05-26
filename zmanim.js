@@ -2,6 +2,13 @@ const axios = require('axios');
 const cron = require('node-cron');
 const { DateTime, Duration } = require('luxon');
 const fs = require('fs');
+const path = require('path');
+
+// Ensure the output directory exists
+const outputDir = '/home/pi/.homebridge/zmanim-js/zmanim';
+if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+}
 
 // Function to get today's date in the format 'YYYY-MM-DD'
 function getTodayDate() {
@@ -12,6 +19,7 @@ function getTodayDate() {
 async function getZmanim() {
     const todayDate = getTodayDate();
     const hebcalUrl = `https://www.hebcal.com/zmanim?cfg=json&geonameid=5277142&date=${todayDate}`;
+    console.log(`Fetching Zmanim from URL: ${hebcalUrl}`);
 
     try {
         const response = await axios.get(hebcalUrl);
@@ -35,10 +43,30 @@ async function triggerIFTTT(payload) {
 }
 
 // Function to write the most recent time to a file
-function writeRecentTime(label, time) {
+function writeRecentTime(label, time, isRecent) {
+    const recentTime = { label: isRecent ? 'yes' : 'no', time: time.toISO() };
+    const filePath = path.join(outputDir, `${label}.json`);
+    fs.writeFileSync(filePath, JSON.stringify(recentTime), 'utf8');
+    console.log(`Updated ${label}.json with label: ${isRecent ? 'yes' : 'no'} at ${time.toFormat('h:mm a')}`);
+}
+
+// Function to write the most recent time to the general recent time file
+function writeGeneralRecentTime(label, time) {
     const recentTime = { label, time: time.toISO() };
-    fs.writeFileSync('recent_time.json', JSON.stringify(recentTime), 'utf8');
-    console.log(`Most recent time updated to ${label} at ${time.toFormat('h:mm a')}`);
+    fs.writeFileSync(path.join(outputDir, 'recent_time.json'), JSON.stringify(recentTime), 'utf8');
+    console.log(`Updated recent_time.json with label: ${label} at ${time.toFormat('h:mm a')}`);
+}
+
+// Function to write the halachic hour to a file
+function writeHalachicHour(sunrise, sunset, now) {
+    const halachicDayDuration = sunset.diff(sunrise).as('minutes');
+    const halachicHourDuration = halachicDayDuration / 12;
+    const elapsedMinutes = now.diff(sunrise).as('minutes');
+    const halachicHour = Math.ceil(elapsedMinutes / halachicHourDuration);
+
+    const halachicHourData = { halachicHour };
+    fs.writeFileSync(path.join(outputDir, 'halachic_hour.json'), JSON.stringify(halachicHourData), 'utf8');
+    console.log(`Updated halachic_hour.json with halachic hour: ${halachicHour}`);
 }
 
 // Function to schedule a cron job to trigger the IFTTT webhook at a specific time
@@ -63,7 +91,7 @@ function scheduleCronTrigger(triggerTime, zmanim, label, offset, isReminder = fa
             await triggerIFTTT(payload);
             console.log(`Reminder sent for ${label} at ${triggerTime.toFormat('h:mm a')}`);
         } else {
-            writeRecentTime(label, triggerTime);
+            applyLabelsAndWriteFiles(label, triggerTime, zmanim.times);
             console.log(`Cron job executed for ${label} at ${triggerTime.toFormat('h:mm a')}`);
         }
     }, {
@@ -72,6 +100,36 @@ function scheduleCronTrigger(triggerTime, zmanim, label, offset, isReminder = fa
 
     const beforeAfter = isReminder ? 'before' : '';
     console.log(`Scheduled cron job for ${Math.abs(offset)} minutes ${beforeAfter} ${label}: ${triggerTime.toFormat('h:mm a')}`);
+}
+
+// Function to apply labels and write to JSON files based on the most recent time
+function applyLabelsAndWriteFiles(mostRecentLabel, mostRecentTime, times) {
+    const labels = {
+        chatzotNight: ['chatzotNight'],
+        misheyakir: ['misheyakir', 'sofZmanShma', 'sofZmanTfilla'],
+        dawn: ['dawn', 'sofZmanShma', 'sofZmanTfilla'],
+        sunrise: ['sunrise', 'sofZmanShma', 'sofZmanTfilla'],
+        sofZmanShma: ['sunrise', 'sofZmanTfilla'],
+        sofZmanTfilla: ['sunrise'],
+        chatzot: ['chatzot'],
+        minchaGedola: ['chatzot', 'minchaGedola'],
+        minchaKetana: ['chatzot', 'minchaKetana'],
+        plagHaMincha: ['plagHaMincha'],
+        sunset: ['sunset'],
+        beinHaShmashos: ['beinHaShmashos'],
+        tzeit85deg: ['tzeit85deg'],
+        tzeit72min: ['tzeit72min']
+    };
+
+    relevantZmanimKeys.forEach(key => {
+        const time = times[key] ? DateTime.fromISO(times[key]).setZone('America/Chicago') : null;
+        if (time) {
+            const isRecent = labels[mostRecentLabel].includes(key);
+            writeRecentTime(key, time, isRecent);
+        }
+    });
+
+    writeGeneralRecentTime(mostRecentLabel, mostRecentTime);
 }
 
 // Simplified Shabbat check function
@@ -121,7 +179,7 @@ function getNextUpTime(times) {
         .filter(entry => entry.time > now)
         .sort((a, b) => a.time - b.time);
 
-    return zmanimEntries.length ? zmanimEntries[0] : { label: 'tzeit85deg', time: DateTime.fromISO(times.tzeit85deg).setZone('America/Chicago') };
+    return zmanimEntries.length ? zmanimEntries[0] : { label: 'tzeit72min', time: DateTime.fromISO(times.tzeit72min).setZone('America/Chicago') };
 }
 
 // Function to get the last time that has passed
@@ -144,6 +202,12 @@ async function scheduleTriggers() {
         console.log('Successfully fetched Zmanim.');
         const times = zmanim.times;
 
+        // Update all zmanim files with initial 'no' status
+        relevantZmanimKeys.forEach(key => {
+            const time = times[key] ? DateTime.fromISO(times[key]).setZone('America/Chicago') : null;
+            if (time) writeRecentTime(key, time, false);
+        });
+
         // Schedule triggers based on offset times
         const triggerTimes = [
             { time: times.chatzotNight, label: 'chatzotNight', offset: offsets.chatzotNight },
@@ -162,6 +226,7 @@ async function scheduleTriggers() {
             { time: times.tzeit72min, label: 'tzeit72min', offset: offsets.tzeit72min }
         ];
 
+        // Schedule cron jobs and update the appropriate file with 'yes'
         triggerTimes.forEach(({ time, offset, label }) => {
             if (time) {
                 const reminderTime = DateTime.fromISO(time).setZone('America/Chicago').minus({ minutes: offset });
@@ -187,7 +252,12 @@ async function scheduleTriggers() {
         };
 
         await triggerIFTTT(startupPayload);
-        writeRecentTime(lastPassed ? lastPassed.label : nextUp.label, lastPassed ? lastPassed.time : nextUp.time);
+        applyLabelsAndWriteFiles(lastPassed ? lastPassed.label : nextUp.label, lastPassed ? lastPassed.time : nextUp.time, times);
+
+        // Calculate and write the halachic hour
+        const sunriseTime = DateTime.fromISO(times.sunrise).setZone('America/Chicago');
+        const sunsetTime = DateTime.fromISO(times.sunset).setZone('America/Chicago');
+        writeHalachicHour(sunriseTime, sunsetTime, now);
     }
 }
 
@@ -199,10 +269,9 @@ cron.schedule('1 0 * * *', async () => {
     timezone: 'America/Chicago'
 });
 
-// Fetch Zmanim and trigger the IFTTT webhook on startup to verify it's working
+// Fetch Zmanim and trigger the IFTTT webhook on startup to verify it’s working
 (async () => {
     await scheduleTriggers();
-
     // Simple trigger of the webhook on startup with next up time information
     const zmanim = await getZmanim();
     if (zmanim && zmanim.times) {
@@ -223,6 +292,10 @@ cron.schedule('1 0 * * *', async () => {
         } else {
             console.log(`Shabbat mode: Skipping IFTTT trigger for startup. Most recent time: ${lastPassed ? lastPassed.label : nextUp.label}`);
         }
-        writeRecentTime(lastPassed ? lastPassed.label : nextUp.label, lastPassed ? lastPassed.time : nextUp.time);
+        applyLabelsAndWriteFiles(lastPassed ? lastPassed.label : nextUp.label, lastPassed ? lastPassed.time : nextUp.time, zmanim.times);
+
+        // Calculate and write the halachic hour
+        const sunriseTime = DateTime.fromISO(zmanim.times.sunrise).setZone('America/Chicago');
+        writeHalachicHour(sunriseTime, sunsetTime, now);
     }
 })();
