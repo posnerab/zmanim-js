@@ -30,6 +30,24 @@ async function getZmanim() {
     }
 }
 
+// Zmanim key to human-readable definition map
+const zmanimDefinitions = {
+    chatzotNight: "Midnight",
+    dawn: "Dawn",
+    misheyakir: "Misheyakir",
+    sunrise: "Sunrise",
+    sofZmanShma: "Latest Shema",
+    sofZmanTfilla: "Latest Shacharis",
+    chatzot: "Midday",
+    minchaGedola: "Earliest Mincha",
+    minchaKetana: "Ideal Mincha",
+    plagHaMincha: "Plag HaMincha",
+    sunset: "Sunset",
+    beinHaShmashos: "Bein HaShmashos",
+    tzeit85deg: "Nightfall",
+    tzeit72min: "Nightfall Rabbeinu Tam"
+};
+
 // Function to trigger the IFTTT webhook with the payload
 async function triggerIFTTT(payload) {
     const iftttUrl = 'https://maker.ifttt.com/trigger/send_zmanim/json/with/key/oEnufm6zNCsxwyRFNYgzkTH1IUGt_Ck2ZV3Sp-bxFrw';
@@ -69,6 +87,16 @@ function writeHalachicHour(sunrise, sunset, now) {
     console.log(`Updated halachic_hour.json with halachic hour: ${halachicHour}`);
 }
 
+// Function to format the time difference
+function formatTimeDifference(minutes) {
+    const absMinutes = Math.abs(minutes);
+    const hours = Math.floor(absMinutes / 60);
+    const remainingMinutes = absMinutes % 60;
+    const formattedHours = hours > 0 ? `${hours} hour${hours > 1 ? 's' : ''}` : '';
+    const formattedMinutes = remainingMinutes > 0 ? `${remainingMinutes} minute${remainingMinutes > 1 ? 's' : ''}` : '';
+    return formattedHours && formattedMinutes ? `${formattedHours} and ${formattedMinutes}` : formattedHours || formattedMinutes;
+}
+
 // Function to schedule a cron job to trigger the IFTTT webhook at a specific time
 function scheduleCronTrigger(triggerTime, zmanim, label, offset, isReminder = false) {
     const cronTime = triggerTime.toFormat('m H d M *');
@@ -83,11 +111,9 @@ function scheduleCronTrigger(triggerTime, zmanim, label, offset, isReminder = fa
 
         if (isReminder) {
             const zmanTime = DateTime.fromISO(zmanim.times[label]).setZone('America/Chicago');
-            const payload = {
-                value1: label,
-                value2: zmanTime.toFormat('h:mm a'),
-                value3: offset
-            };
+            const timeDiff = now.diff(zmanTime, 'minutes').minutes;
+            const humanReadable = `${zmanimDefinitions[label]} is ${formatTimeDifference(timeDiff)} away (${zmanTime.toFormat('h:mm a')})`;
+            const payload = { value1: humanReadable };
             await triggerIFTTT(payload);
             console.log(`Reminder sent for ${label} at ${triggerTime.toFormat('h:mm a')}`);
         } else {
@@ -241,18 +267,14 @@ async function scheduleTriggers() {
 
         // Find and set the next up time or last passed time
         const nextUp = getNextUpTime(times);
-        const lastPassed = getLastPassedTime(times);
         const now = DateTime.now().setZone('America/Chicago');
-        const minutesAgo = lastPassed ? Math.round(Duration.fromObject({ milliseconds: now.diff(lastPassed.time).milliseconds }).as('minutes')) : 0;
 
-        const startupPayload = {
-            value1: nextUp.label,
-            value2: nextUp.time.toFormat('h:mm a'),
-            value3: minutesAgo
-        };
+        const timeDiff = Math.round(nextUp.time.diff(now, 'minutes').minutes);
+        const humanReadable = `${zmanimDefinitions[nextUp.label]} is ${formatTimeDifference(timeDiff)} away (${nextUp.time.toFormat('h:mm a')})`;
+        const startupPayload = { value1: humanReadable };
 
         await triggerIFTTT(startupPayload);
-        applyLabelsAndWriteFiles(lastPassed ? lastPassed.label : nextUp.label, lastPassed ? lastPassed.time : nextUp.time, times);
+        applyLabelsAndWriteFiles(nextUp.label, nextUp.time, times);
 
         // Calculate and write the halachic hour
         const sunriseTime = DateTime.fromISO(times.sunrise).setZone('America/Chicago');
@@ -276,23 +298,19 @@ cron.schedule('1 0 * * *', async () => {
     const zmanim = await getZmanim();
     if (zmanim && zmanim.times) {
         const nextUp = getNextUpTime(zmanim.times);
-        const lastPassed = getLastPassedTime(zmanim.times);
         const now = DateTime.now().setZone('America/Chicago');
-        const minutesAgo = lastPassed ? Math.round(Duration.fromObject({ milliseconds: now.diff(lastPassed.time).milliseconds }).as('minutes')) : 0;
 
-        const startupPayload = {
-            value1: nextUp.label,
-            value2: nextUp.time.toFormat('h:mm a'),
-            value3: minutesAgo
-        };
+        const timeDiff = Math.round(nextUp.time.diff(now, 'minutes').minutes);
+        const humanReadable = `${zmanimDefinitions[nextUp.label]} is ${formatTimeDifference(timeDiff)} away (${nextUp.time.toFormat('h:mm a')})`;
+        const startupPayload = { value1: humanReadable };
 
         const sunsetTime = DateTime.fromISO(zmanim.times.sunset).setZone('America/Chicago');
         if (!isShabbat(now, sunsetTime)) {
             await triggerIFTTT(startupPayload);
         } else {
-            console.log(`Shabbat mode: Skipping IFTTT trigger for startup. Most recent time: ${lastPassed ? lastPassed.label : nextUp.label}`);
+            console.log(`Shabbat mode: Skipping IFTTT trigger for startup. Most recent time: ${nextUp.label}`);
         }
-        applyLabelsAndWriteFiles(lastPassed ? lastPassed.label : nextUp.label, lastPassed ? lastPassed.time : nextUp.time, zmanim.times);
+        applyLabelsAndWriteFiles(nextUp.label, nextUp.time, zmanim.times);
 
         // Calculate and write the halachic hour
         const sunriseTime = DateTime.fromISO(zmanim.times.sunrise).setZone('America/Chicago');
