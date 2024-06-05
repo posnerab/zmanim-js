@@ -111,7 +111,7 @@ function scheduleCronTrigger(triggerTime, zmanim, label, offset, isReminder = fa
 
         if (isReminder) {
             const zmanTime = DateTime.fromISO(zmanim.times[label]).setZone('America/Chicago');
-            const timeDiff = now.diff(zmanTime, 'minutes').minutes;
+            const timeDiff = Math.round(now.diff(zmanTime, 'minutes').minutes.minutes);
             const humanReadable = `${zmanimDefinitions[label]} is ${formatTimeDifference(timeDiff)} away (${zmanTime.toFormat('h:mm a')})`;
             const payload = { value1: humanReadable };
             await triggerIFTTT(payload);
