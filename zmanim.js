@@ -44,7 +44,7 @@ const zmanimDefinitions = {
     plagHaMincha: "Plag HaMincha",
     sunset: "Sunset",
     beinHaShmashos: "Bein HaShmashos",
-    tzeit85deg: "Nightfall",
+    tzeit42min: "Nightfall",
     tzeit72min: "Nightfall Rabbeinu Tam"
 };
 
@@ -143,7 +143,7 @@ function applyLabelsAndWriteFiles(mostRecentLabel, mostRecentTime, times) {
         plagHaMincha: ['plagHaMincha'],
         sunset: ['sunset'],
         beinHaShmashos: ['beinHaShmashos'],
-        tzeit85deg: ['tzeit85deg'],
+        tzeit42min: ['tzeit42min'],
         tzeit72min: ['tzeit72min']
     };
 
@@ -186,14 +186,14 @@ const offsets = {
     plagHaMincha: 30,
     sunset: 60,
     beinHaShmashos: 30,
-    tzeit85deg: 30,
+    tzeit42min: 30,
     tzeit72min: 30
 };
 
 // List of relevant zmanim keys
 const relevantZmanimKeys = [
     'chatzotNight', 'misheyakir', 'dawn', 'sunrise', 'sofZmanShma', 'sofZmanTfilla',
-    'chatzot', 'minchaGedola', 'minchaKetana', 'plagHaMincha', 'sunset', 'beinHaShmashos', 'tzeit85deg', 'tzeit72min'
+    'chatzot', 'minchaGedola', 'minchaKetana', 'plagHaMincha', 'sunset', 'beinHaShmashos', 'tzeit42min', 'tzeit72min'
 ];
 
 // Function to find the next upcoming time
@@ -248,7 +248,7 @@ async function scheduleTriggers() {
             { time: times.plagHaMincha, label: 'plagHaMincha', offset: offsets.plagHaMincha },
             { time: times.sunset, label: 'sunset', offset: offsets.sunset },
             { time: times.beinHaShmashos, label: 'beinHaShmashos', offset: offsets.beinHaShmashos },
-            { time: times.tzeit85deg, label: 'tzeit85deg', offset: offsets.tzeit85deg },
+            { time: times.tzeit42min, label: 'tzeit42min', offset: offsets.tzeit42min },
             { time: times.tzeit72min, label: 'tzeit72min', offset: offsets.tzeit72min }
         ];
 

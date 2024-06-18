@@ -1,6 +1,6 @@
 
 const fs = require('fs');
-const zmanimFile = '/home/pi/.homebridge/zmanim-js/zmanim/tzeit85deg.json';
+const zmanimFile = '/home/pi/.homebridge/zmanim-js/zmanim/tzeit42min.json';
 
 try {
     const data = fs.readFileSync(zmanimFile, 'utf8');
