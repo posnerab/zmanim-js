@@ -18,7 +18,7 @@ function getTodayDate() {
 // Function to query the Hebcal API and return the JSON response
 async function getZmanim() {
     const todayDate = getTodayDate();
-    const hebcalUrl = `https://www.hebcal.com/zmanim?cfg=json&geonameid=5277142&date=${todayDate}`;
+    const hebcalUrl = `https://www.hebcal.com/zmanim?cfg=json&geonameid=5253219&date=${todayDate}`;
     console.log(`Fetching Zmanim from URL: ${hebcalUrl}`);
 
     try {
@@ -36,16 +36,17 @@ const zmanimDefinitions = {
     dawn: "Dawn",
     misheyakir: "Misheyakir",
     sunrise: "Sunrise",
-    sofZmanShma: "Latest Shema",
-    sofZmanTfilla: "Latest Shacharis",
+    sofZmanShmaMGA16Point1: "Latest Shema (MGA 16.1°)",
+    sofZmanShmaMGA: "Latest Shema (MGA Gra-36)",
+    sofZmanShma: "Latest Shema (Gra)",
+    sofZmanTfillaMGA: "Latest Shacharis (MGA)",
+    sofZmanTfilla: "Latest Shacharis (Gra)",
     chatzot: "Midday",
     minchaGedola: "Earliest Mincha",
     minchaKetana: "Ideal Mincha",
     plagHaMincha: "Plag HaMincha",
     sunset: "Sunset",
-    beinHaShmashos: "Bein HaShmashos",
-    tzeit42min: "Nightfall",
-    tzeit72min: "Nightfall Rabbeinu Tam"
+    tzeit72min: "Nightfall"
 };
 
 // Function to trigger the IFTTT webhook with the payload
@@ -143,8 +144,6 @@ function applyLabelsAndWriteFiles(mostRecentLabel, mostRecentTime, times) {
         minchaKetana: ['chatzot', 'minchaKetana'],
         plagHaMincha: ['plagHaMincha'],
         sunset: ['sunset'],
-        beinHaShmashos: ['beinHaShmashos'],
-        tzeit42min: ['tzeit42min'],
         tzeit72min: ['tzeit72min']
     };
 
@@ -179,22 +178,23 @@ const offsets = {
     misheyakir: 30,
     dawn: 30,
     sunrise: 30,
+    sofZmanShmaMGA16Point1: 30,
+    sofZmanShmaMGA: 30,
     sofZmanShma: 30,
+    sofZmanTfillaMGA: 30,
     sofZmanTfilla: 30,
     chatzot: 30,
     minchaGedola: 30,
     minchaKetana: 30,
     plagHaMincha: 30,
     sunset: 60,
-    beinHaShmashos: 30,
-    tzeit42min: 30,
     tzeit72min: 30
 };
 
 // List of relevant zmanim keys
 const relevantZmanimKeys = [
-    'chatzotNight', 'misheyakir', 'dawn', 'sunrise', 'sofZmanShma', 'sofZmanTfilla',
-    'chatzot', 'minchaGedola', 'minchaKetana', 'plagHaMincha', 'sunset', 'beinHaShmashos', 'tzeit42min', 'tzeit72min'
+    'chatzotNight', 'misheyakir', 'dawn', 'sunrise', 'sofZmanShmaMGA16Point1', 'sofZmanShmaMGA', 'sofZmanShma', 'sofZmanTfilla', 'sofZmanTfillaMGA',
+    'chatzot', 'minchaGedola', 'minchaKetana', 'plagHaMincha', 'sunset', 'tzeit72min'
 ];
 
 // Function to find the next upcoming time
@@ -241,15 +241,16 @@ async function scheduleTriggers() {
             { time: times.misheyakir, label: 'misheyakir', offset: offsets.misheyakir },
             { time: times.dawn, label: 'dawn', offset: offsets.dawn },
             { time: times.sunrise, label: 'sunrise', offset: offsets.sunrise },
+            { time: times.sofZmanShmaMGA16Point1, label: 'sofZmanShmaMGA16Point1', offset: offsets.sofZmanShmaMGA16Point1 },
+            { time: times.sofZmanShmaMGA, label: 'sofZmanShmaMGA', offset: offsets.sofZmanShmaMGA },
             { time: times.sofZmanShma, label: 'sofZmanShma', offset: offsets.sofZmanShma },
             { time: times.sofZmanTfilla, label: 'sofZmanTfilla', offset: offsets.sofZmanTfilla },
+            { time: times.sofZmanTfillaMGA, label: 'sofZmanTfillaMGA', offset: offsets.sofZmanTfillaMGA },
             { time: times.chatzot, label: 'chatzot', offset: offsets.chatzot },
             { time: times.minchaGedola, label: 'minchaGedola', offset: offsets.minchaGedola },
             { time: times.minchaKetana, label: 'minchaKetana', offset: offsets.minchaKetana },
             { time: times.plagHaMincha, label: 'plagHaMincha', offset: offsets.plagHaMincha },
             { time: times.sunset, label: 'sunset', offset: offsets.sunset },
-            { time: times.beinHaShmashos, label: 'beinHaShmashos', offset: offsets.beinHaShmashos },
-            { time: times.tzeit42min, label: 'tzeit42min', offset: offsets.tzeit42min },
             { time: times.tzeit72min, label: 'tzeit72min', offset: offsets.tzeit72min }
         ];
 

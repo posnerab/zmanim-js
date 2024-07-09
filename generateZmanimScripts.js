@@ -2,9 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 const zmanimKeys = [
-    'chatzotNight', 'misheyakir', 'dawn', 'sunrise', 'sofZmanShma',
-    'sofZmanTfilla', 'chatzot', 'minchaGedola', 'minchaKetana',
-    'plagHaMincha', 'sunset', 'beinHaShmashos', 'tzeit85deg', 'tzeit72min'
+    'chatzotNight', 'misheyakir', 'dawn', 'sunrise', 'sofZmanShmaMGA16Point1', 'sofZmanShmaMGA', 'sofZmanShma', 'sofZmanTfilla', 'sofZmanTfillaMGA',
+    'chatzot', 'minchaGedola', 'minchaKetana', 'plagHaMincha', 'sunset', 'tzeit72min'
 ];
 
 const template = `
