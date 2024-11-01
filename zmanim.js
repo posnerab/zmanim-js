@@ -37,10 +37,10 @@ const zmanimDefinitions = {
     misheyakir: "Misheyakir",
     sunrise: "Sunrise",
     sofZmanShmaMGA16Point1: "Latest Shema (MGA 16.1°)",
-    sofZmanShmaMGA: "Latest Shema (MGA Gra-36)",
-    sofZmanShma: "Latest Shema (Gra)",
+  //sofZmanShmaMGA: "Latest Shema (MGA Gra-36)",
+  //sofZmanShma: "Latest Shema (Gra)",
     sofZmanTfillaMGA: "Latest Shacharis (MGA)",
-    sofZmanTfilla: "Latest Shacharis (Gra)",
+  //sofZmanTfilla: "Latest Shacharis (Gra)",
     chatzot: "Midday",
     minchaGedola: "Earliest Mincha",
     minchaKetana: "Ideal Mincha",
@@ -134,11 +134,11 @@ function scheduleCronTrigger(triggerTime, zmanim, label, offset, isReminder = fa
 function applyLabelsAndWriteFiles(mostRecentLabel, mostRecentTime, times) {
     const labels = {
         chatzotNight: ['chatzotNight'],
-        misheyakir: ['misheyakir', 'sofZmanShma', 'sofZmanTfilla'],
-        dawn: ['dawn', 'sofZmanShma', 'sofZmanTfilla'],
-        sunrise: ['sunrise', 'sofZmanShma', 'sofZmanTfilla'],
-        sofZmanShma: ['sunrise', 'sofZmanTfilla'],
-        sofZmanTfilla: ['sunrise'],
+        misheyakir: ['misheyakir', 'sofZmanShmaMGA16Point1', 'sofZmanTfillaMGA'],
+        dawn: ['dawn', 'sofZmanShmaMGA16Point1', 'sofZmanTfillaMGA'],
+        sunrise: ['sunrise', 'sofZmanShmaMGA16Point1', 'sofZmanTfillaMGA'],
+        sofZmanShmaMGA16Point1: ['sunrise', 'sofZmanTfillaMGA'],
+        sofZmanTfillaMGA: ['sunrise'],
         chatzot: ['chatzot'],
         minchaGedola: ['chatzot', 'minchaGedola'],
         minchaKetana: ['chatzot', 'minchaKetana'],
@@ -179,10 +179,10 @@ const offsets = {
     dawn: 30,
     sunrise: 30,
     sofZmanShmaMGA16Point1: 30,
-    sofZmanShmaMGA: 30,
-    sofZmanShma: 30,
+    //sofZmanShmaMGA: 30,
+    //sofZmanShma: 30,
     sofZmanTfillaMGA: 30,
-    sofZmanTfilla: 30,
+    //sofZmanTfilla: 30,
     chatzot: 30,
     minchaGedola: 30,
     minchaKetana: 30,
@@ -193,7 +193,8 @@ const offsets = {
 
 // List of relevant zmanim keys
 const relevantZmanimKeys = [
-    'chatzotNight', 'misheyakir', 'dawn', 'sunrise', 'sofZmanShmaMGA16Point1', 'sofZmanShmaMGA', 'sofZmanShma', 'sofZmanTfilla', 'sofZmanTfillaMGA',
+    'chatzotNight', 'misheyakir', 'dawn', 'sunrise', 'sofZmanShmaMGA16Point1', //'sofZmanShmaMGA', 'sofZmanShma', 'sofZmanTfilla',
+    'sofZmanTfillaMGA',
     'chatzot', 'minchaGedola', 'minchaKetana', 'plagHaMincha', 'sunset', 'tzeit72min'
 ];
 
@@ -242,9 +243,9 @@ async function scheduleTriggers() {
             { time: times.dawn, label: 'dawn', offset: offsets.dawn },
             { time: times.sunrise, label: 'sunrise', offset: offsets.sunrise },
             { time: times.sofZmanShmaMGA16Point1, label: 'sofZmanShmaMGA16Point1', offset: offsets.sofZmanShmaMGA16Point1 },
-            { time: times.sofZmanShmaMGA, label: 'sofZmanShmaMGA', offset: offsets.sofZmanShmaMGA },
-            { time: times.sofZmanShma, label: 'sofZmanShma', offset: offsets.sofZmanShma },
-            { time: times.sofZmanTfilla, label: 'sofZmanTfilla', offset: offsets.sofZmanTfilla },
+            //{ time: times.sofZmanShmaMGA, label: 'sofZmanShmaMGA', offset: offsets.sofZmanShmaMGA },
+            //{ time: times.sofZmanShma, label: 'sofZmanShma', offset: offsets.sofZmanShma },
+            //{ time: times.sofZmanTfilla, label: 'sofZmanTfilla', offset: offsets.sofZmanTfilla },
             { time: times.sofZmanTfillaMGA, label: 'sofZmanTfillaMGA', offset: offsets.sofZmanTfillaMGA },
             { time: times.chatzot, label: 'chatzot', offset: offsets.chatzot },
             { time: times.minchaGedola, label: 'minchaGedola', offset: offsets.minchaGedola },
