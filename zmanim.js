@@ -18,7 +18,7 @@ function getTodayDate() {
 // Function to query the Hebcal API and return the JSON response
 async function getZmanim() {
     const todayDate = getTodayDate();
-    const hebcalUrl = `https://www.hebcal.com/zmanim?cfg=json&geonameid=5253219&date=${todayDate}`;
+    const hebcalUrl = `https://www.hebcal.com/zmanim?cfg=json&zip=53216&date=${todayDate}`;
     console.log(`Fetching Zmanim from URL: ${hebcalUrl}`);
 
     try {
