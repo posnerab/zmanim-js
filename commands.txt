@@ -1,3 +1,8 @@
+// Raspberry Pi
 sudo systemctl daemon-reload
 sudo systemctl restart zmanim
 sudo systemctl status zmanim
+
+// MacOS
+launchctl unload ~/Library/LaunchAgents/com.zmanim.startup.plist
+launchctl load ~/Library/LaunchAgents/com.zmanim.startup.plist

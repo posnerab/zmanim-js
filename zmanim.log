@@ -423,3 +423,75 @@ Error fetching Zmanim: AxiosError: getaddrinfo ENOTFOUND www.hebcal.com
     hostname: 'www.hebcal.com'
   }
 }
+Using output directory: /Users/xanderposner/.homebridge/zmanim-js/zmanim
+Fetching Zmanim...
+Fetching Zmanim from URL: https://www.hebcal.com/zmanim?cfg=json&zip=53216&date=2024-12-15
+Successfully fetched Zmanim.
+Updated chatzotNight.json with label: no at 11:47 PM
+Updated misheyakir.json with label: no at 6:12 AM
+Updated dawn.json with label: no at 6:45 AM
+Updated sunrise.json with label: no at 7:17 AM
+Updated sofZmanShmaMGA16Point1.json with label: no at 8:46 AM
+Updated sofZmanTfillaMGA.json with label: no at 9:53 AM
+Updated chatzot.json with label: no at 11:47 AM
+Updated minchaGedola.json with label: no at 12:10 PM
+Updated minchaKetana.json with label: no at 2:25 PM
+Updated plagHaMincha.json with label: no at 3:21 PM
+Updated sunset.json with label: no at 4:18 PM
+Updated tzeit72min.json with label: no at 5:30 PM
+Scheduled cron job for 30 minutes before chatzotNight: 11:17 PM
+Scheduled cron job for 0 minutes  chatzotNight: 11:47 PM
+Scheduled cron job for 30 minutes before misheyakir: 5:42 AM
+Scheduled cron job for 0 minutes  misheyakir: 6:12 AM
+Scheduled cron job for 30 minutes before dawn: 6:15 AM
+Scheduled cron job for 0 minutes  dawn: 6:45 AM
+Scheduled cron job for 30 minutes before sunrise: 6:47 AM
+Scheduled cron job for 0 minutes  sunrise: 7:17 AM
+Scheduled cron job for 30 minutes before sofZmanShmaMGA16Point1: 8:16 AM
+Scheduled cron job for 0 minutes  sofZmanShmaMGA16Point1: 8:46 AM
+Scheduled cron job for 30 minutes before sofZmanTfillaMGA: 9:23 AM
+Scheduled cron job for 0 minutes  sofZmanTfillaMGA: 9:53 AM
+Scheduled cron job for 30 minutes before chatzot: 11:17 AM
+Scheduled cron job for 0 minutes  chatzot: 11:47 AM
+Scheduled cron job for 30 minutes before minchaGedola: 11:40 AM
+Scheduled cron job for 0 minutes  minchaGedola: 12:10 PM
+Scheduled cron job for 30 minutes before minchaKetana: 1:55 PM
+Scheduled cron job for 0 minutes  minchaKetana: 2:25 PM
+Scheduled cron job for 30 minutes before plagHaMincha: 2:51 PM
+Scheduled cron job for 0 minutes  plagHaMincha: 3:21 PM
+Scheduled cron job for 60 minutes before sunset: 3:18 PM
+Scheduled cron job for 0 minutes  sunset: 4:18 PM
+Scheduled cron job for 30 minutes before tzeit72min: 5:00 PM
+Scheduled cron job for 0 minutes  tzeit72min: 5:30 PM
+IFTTT webhook triggered with payload: {"value1":"Midday is 1 hour and 1 minute away (11:47 AM)"}
+Updated chatzotNight.json with label: no at 11:47 PM
+Updated misheyakir.json with label: no at 6:12 AM
+Updated dawn.json with label: no at 6:45 AM
+Updated sunrise.json with label: no at 7:17 AM
+Updated sofZmanShmaMGA16Point1.json with label: no at 8:46 AM
+Updated sofZmanTfillaMGA.json with label: no at 9:53 AM
+Updated chatzot.json with label: yes at 11:47 AM
+Updated minchaGedola.json with label: no at 12:10 PM
+Updated minchaKetana.json with label: no at 2:25 PM
+Updated plagHaMincha.json with label: no at 3:21 PM
+Updated sunset.json with label: no at 4:18 PM
+Updated tzeit72min.json with label: no at 5:30 PM
+Updated recent_time.json with label: chatzot at 11:47 AM
+Updated halachic_hour.json with halachic hour: 5
+Fetching Zmanim from URL: https://www.hebcal.com/zmanim?cfg=json&zip=53216&date=2024-12-15
+Current time 12/15/2024, 10:46 AM is outside Shabbat period from 12/13/2024, 4:00 PM to 12/14/2024, 5:30 PM.
+IFTTT webhook triggered with payload: {"value1":"Midday is 1 hour and 1 minute away (11:47 AM)"}
+Updated chatzotNight.json with label: no at 11:47 PM
+Updated misheyakir.json with label: no at 6:12 AM
+Updated dawn.json with label: no at 6:45 AM
+Updated sunrise.json with label: no at 7:17 AM
+Updated sofZmanShmaMGA16Point1.json with label: no at 8:46 AM
+Updated sofZmanTfillaMGA.json with label: no at 9:53 AM
+Updated chatzot.json with label: yes at 11:47 AM
+Updated minchaGedola.json with label: no at 12:10 PM
+Updated minchaKetana.json with label: no at 2:25 PM
+Updated plagHaMincha.json with label: no at 3:21 PM
+Updated sunset.json with label: no at 4:18 PM
+Updated tzeit72min.json with label: no at 5:30 PM
+Updated recent_time.json with label: chatzot at 11:47 AM
+Updated halachic_hour.json with halachic hour: 5

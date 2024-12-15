@@ -3,9 +3,18 @@ const cron = require('node-cron');
 const { DateTime, Duration } = require('luxon');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
-// Ensure the output directory exists
-const outputDir = '/home/pi/.homebridge/zmanim-js/zmanim';
+// Check the platform or use an environment variable
+const isRaspberryPi = os.platform() === 'linux' && os.hostname().includes('raspberrypi');
+
+// Dynamically set the output directory
+const outputDir = isRaspberryPi
+  ? '/home/pi/.homebridge/zmanim-js/zmanim'
+  : path.join(os.homedir(), '.homebridge/zmanim-js/zmanim');
+
+console.log(`Using output directory: ${outputDir}`);
+
 if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
 }
