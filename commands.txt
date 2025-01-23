@@ -2,6 +2,8 @@
 sudo systemctl daemon-reload
 sudo systemctl restart zmanim.service
 sudo systemctl status zmanim.service
+  git config --global user.email "xander@berkeley.edu"
+  git config --global user.name "Xander Posner"
 
 // MacOS
 launchctl unload ~/Library/LaunchAgents/com.zmanim.startup.plist
