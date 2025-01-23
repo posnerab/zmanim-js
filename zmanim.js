@@ -10,7 +10,7 @@ const isRaspberryPi = os.platform() === 'linux' && os.hostname().includes('raspb
 
 // Dynamically set the output directory
 const outputDir = isRaspberryPi
-  ? '/home/pi/.homebridge/zmanim-js/zmanim'
+  ? '/var/lib/homebridge/zmanim-js/zmanim'
   : path.join(os.homedir(), '.homebridge/zmanim-js/zmanim');
 
 console.log(`Using output directory: ${outputDir}`);
